@@ -3,7 +3,7 @@ import threading
 
 sock = socket(AF_INET, SOCK_DGRAM)
 sock.settimeout(1)
-sock.bind(("127.0.0.1", 4504))
+sock.bind(("0.0.0.0", 4504))
 
 # Addr for client contact
 #clients = []
@@ -44,6 +44,7 @@ def incoming_thread():
             continue
 
         message = message.decode()
+        print(message)
         msp = message.split(":")
 
         if msp[0] == "POSUPDT":
