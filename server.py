@@ -14,7 +14,7 @@ socktcp.bind(("0.0.0.0", 4504))
 
 clientIDs = []
 
-# Vector3s
+# Transforms
 clientspos = {}
 
 # is said client connected?
@@ -27,14 +27,18 @@ idcounter = 0
 
 
 
-# Vector3 represented in strings. I never need the numbers on the server so it doesn't matter if I convert them
-class Vector3(object):
-    def __init__(self, x, y, z):
+# Transform represented in strings. I never need the numbers on the server so it doesn't matter if I convert them
+class Transform(object):
+    def __init__(self, x, y, z, rx, ry, rz):
         self.x = x
         self.y = y
         self.z = z
+
+        self.rx = rx
+        self.ry = ry
+        self.rz = rz
     def serialize(self):
-        return f"{self.x}:{self.y}:{self.z}"
+        return f"{self.x}:{self.y}:{self.z}:{self.rx}:{self.ry}:{self.rz}"
 
 
 
@@ -56,12 +60,12 @@ def incoming_udp_thread():
         msp = message.split(":")
 
         if msp[0] == "POSUPDT":
-            # Server command code: POSUPDT:X:Y:Z:ID
+            # Server command code: POSUPDT:X:Y:Z:RX:RY:RZ:ID
             print("Got position update")
-            clientspos[int(msp[4])] = Vector3(msp[1], msp[2], msp[3])
+            clientspos[int(msp[7])] = Transform(msp[1], msp[2], msp[3], msp[4], msp[5], msp[6])
         elif msp[0] == "POSREQ":
             print(clientspos)
-            # Client command code: POSUPDTCL;ID:X:Y:Z;(repeat as many times as needed)
+            # Client command code: POSUPDTCL;ID:X:Y:Z:RX:RY:RZ;(repeat as many times as needed)
             clmessage = "POSUPDTCL"
             for client in clientIDs:
                 if client_connected[client]:
@@ -85,7 +89,7 @@ def incoming_tcp_thread():
     
      
         client_connected[idcounter] = True
-        clientspos[idcounter] = Vector3(0, 0, 0)
+        clientspos[idcounter] = Transform(0, 0, 0, 0, 0, 0)
 
         thread = threading.Thread(target=user_tcp_thread, args=[connection, idcounter])
         thread.daemon = True
